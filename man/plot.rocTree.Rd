@@ -5,9 +5,10 @@
 \title{Plotting an \code{rocTree} object}
 \usage{
 \method{plot}{rocTree}(x, output = c("graph", "visNetwork"),
-  digits = 4, rankdir = c("TB", "BT", "LR", "RL"), shape = "ellipse",
-  nodeOnly = FALSE, savePlot = FALSE, file_name = "pic.pdf",
-  file_type = "pdf", ...)
+  digits = 4, tree = 1L, rankdir = c("TB", "BT", "LR", "RL"),
+  shape = "ellipse", nodeOnly = FALSE, savePlot = FALSE,
+  file_name = "pic.pdf", file_type = "pdf", type = c("tree",
+  "survival", "hazard"), ...)
 }
 \arguments{
 \item{x}{an object of class "\code{rocTree}", usually returned by the rocTree function.}
@@ -15,6 +16,8 @@
 \item{output}{a string specifying the output type; graph (the default) renders the graph using the \code{grViz} function, and \code{visNetwork} renders the graph using the visnetwork function.}
 
 \item{digits}{the number of digits to print.}
+
+\item{tree}{is an optional integer specifying the \eqn{n^{th}} tree in the forest to print.}
 
 \item{rankdir}{is a character string specifying the direction of the tree flow. The available options are top-to-bottom ("TB"), bottom-to-top ("BT"), left-to-right ("LR"),
 and right-to-left ("RL"); the default value is "TB".}
@@ -30,20 +33,32 @@ Some of the available options are "ellipse", "oval", "rectangle", "square", "egg
 
 \item{file_type}{is a character string specifying the type of file to be exported. Options for graph files are: "png", "pdf", "svg", and "ps". The default value is "pdf".}
 
+\item{type}{is an optional character string specifying the type of plots to produce. The available options are "tree" for plotting survival tree (default),
+"survival" for plotting the estimated survival probabilities for the terminal nodes, and "hazard" for plotting the estimated hazard for the terminal nodes.
+The \code{dgr_graph} options are available only when \code{type = tree}.}
+
 \item{...}{arguments to be passed to or from other methods.}
 }
 \description{
-Plots an \code{rocTree} object. The function returns a \code{dgr_graph} object and is rendered in the RStudio Viewer.
+Plots an \code{rocTree} object. The function returns a \code{dgr_graph} object that is rendered in the RStudio Viewer or survival/hazard estimate at terminal nodes.
 }
 \examples{
+library(rocTree)
+library(survival)
+
 set.seed(1)
 dat <- simu(100, 0, 1.3)
-library(survival)
-system.time(fit <- rocTree(Surv(Time, death) ~ z1 + z2, id = id,
-data = dat, control = list(prune = TRUE, nflds = 10)))
+
+fit <- rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = dat, ensemble = FALSE)
+
+## Plot tree
 plot(fit)
-plot(fit, rankdir = "LR", nodeOnly = TRUE)
-plot(fit, output = "visNetwork", nodeOnly = TRUE, shape = "box")
+
+## Plot survival estimates at terminal nodes
+plot(fit, type = "survival")
+
+## Plot hazard estimates at terminal nodes
+plot(fit, type = "haz")
 }
 \seealso{
 See \code{\link{rocTree}} for creating \code{rocTree} objects.

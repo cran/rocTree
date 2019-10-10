@@ -5,7 +5,7 @@
 \title{Predicting based on a \code{rocTree} model.}
 \usage{
 \method{predict}{rocTree}(object, newdata, type = c("survival",
-  "hazard"), ...)
+  "hazard"), control = list(), ...)
 }
 \arguments{
 \item{object}{is an \code{rocTree} object.}
@@ -16,6 +16,9 @@ If the covariate observation time is not supplied, covariates will be treated as
 
 \item{type}{is an optional character string specifying whether to predict the survival probability or the cumulative hazard rate.}
 
+\item{control}{a list of control parameters. See 'details' for important special
+features of control parameters. See \code{\link{rocTree}} for more details.}
+
 \item{...}{for future developments.}
 }
 \value{
@@ -24,6 +27,26 @@ Returns a \code{data.frame} of the predicted survival probabilities or cumulativ
 \description{
 The function gives predicted values with a \code{rocTree} fit.
 }
-\seealso{
-\code{\link{predict.rocForest}}
+\examples{
+library(rocTree)
+library(survival)
+
+set.seed(1)
+dat <- simu(100, 0, 1.3)
+
+fit <- rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = dat, ensemble = FALSE)
+
+## testing data
+newdat <- dplyr::tibble(Time = sort(unique(dat$Time)), 
+                        z1 = 1 * (Time < median(Time)), 
+                        z2 = runif(1))
+newdat
+
+## Predict survival 
+pred <- predict(fit, newdat)
+plot(pred)
+
+## Predict hazard
+pred <- predict(fit, newdat, type = "hazard")
+plot(pred)
 }
