@@ -4,8 +4,15 @@
 \alias{rocTree}
 \title{Roc-guided survival trees}
 \usage{
-rocTree(formula, data, id, subset, ensemble = TRUE, splitBy = c("dCON",
-  "CON"), control = list())
+rocTree(
+  formula,
+  data,
+  id,
+  subset,
+  ensemble = TRUE,
+  splitBy = c("dCON", "CON"),
+  control = list()
+)
 }
 \arguments{
 \item{formula}{is a formula object, with the response on the left of a '~' operator,
@@ -43,6 +50,7 @@ Fits a "\code{rocTree}" model.
 The argument "control" defaults to a list with the following values:
 \describe{
   \item{\code{tau}}{is the maximum follow-up time; default value is the 90th percentile of the unique observed survival times.}
+  \item{\code{maxTree}}{is the number of survival trees to be used in the ensemble method (when \code{ensemble = TRUE}).}
   \item{\code{maxNode}}{is the maximum node number allowed to be in the tree; the default value is 500.}
   \item{\code{numFold}}{is the number of folds used in the cross-validation. When \code{numFold > 0}, the survival tree will be pruned;
 when \code{numFold = 0}, the unpruned survival tree will be presented. The default value is 10.}
@@ -56,22 +64,19 @@ A less refined time grids (smaller \code{K}) generally yields faster speed but a
 }
 }
 \examples{
-library(rocTree)
-library(survival)
-
-set.seed(1)
-dat <- simu(100, 0, 1.3)
+data(simDat)
 
 ## Fitting a pruned survival tree
-rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = dat, ensemble = FALSE)
+rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = simDat, ensemble = FALSE)
 
 ## Fitting a unpruned survival tree
-rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = dat, ensemble = FALSE,
+rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = simDat, ensemble = FALSE,
         control = list(numFold = 0))
 
+\dontrun{
 ## Fitting the ensemble algorithm (default)
-rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = dat, ensemble = TRUE)
-
+rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = simDat, ensemble = TRUE)
+}
 }
 \references{
 Sun Y. and Wang, M.C. (2018+). ROC-guided classification and survival trees. \emph{Technical report}.

@@ -1,4 +1,7 @@
+# rocTree 1.1.1
+  * Resubmission; previous version was archived 
 # rocTree 1.1.0
+  * Resolve CRAN error: "calling math functions such as log pow sqrt with integer arguments is not portable."
   * Rewrite tree/ensemble algorithms with Rcpp
 	* Significantly speed improvement
 

@@ -5,6 +5,7 @@
 #' The argument "control" defaults to a list with the following values:
 #' \describe{
 #'   \item{\code{tau}}{is the maximum follow-up time; default value is the 90th percentile of the unique observed survival times.}
+#'   \item{\code{maxTree}}{is the number of survival trees to be used in the ensemble method (when \code{ensemble = TRUE}).}
 #'   \item{\code{maxNode}}{is the maximum node number allowed to be in the tree; the default value is 500.}
 #'   \item{\code{numFold}}{is the number of folds used in the cross-validation. When \code{numFold > 0}, the survival tree will be pruned;
 #' when \code{numFold = 0}, the unpruned survival tree will be presented. The default value is 10.}
@@ -77,16 +78,25 @@ rocTree <- function(formula, data, id, subset, ensemble = TRUE, splitBy = c("dCO
     .X <- stats::model.matrix(formula, data = mf)
     if (any(colnames(.X) == "(Intercept)"))
         .X <- .X[,!(colnames(.X) == "(Intercept)"), drop = FALSE]
+    if (length(grep("`", colnames(.X))) > 0)
+        .X <- .X[,-grep("`", colnames(.X))]  
     .id <- model.extract(mf, id)
     names(.id) <- names(.Y) <- names(.D) <- rownames(.X) <- NULL
-    if (is.null(.id)) {
-        .id <- .id2 <- 1:length(.Y)
-        ord <- order(.Y)
-    } else {
-        tmp <- aggregate(.Y ~ .id, FUN = max)
-        ord <- unlist(sapply(tmp$.id[order(tmp$.Y)], function(x) which(.id == x)), use.names = F)
-        .id2 <- rep(1:length(unique(.id)), table(.id)[unique(.id[ord])])
-    }
+    if (is.null(.id) | length(.id) == length(unique(.id))) {
+        .id <- 1:length(.Y)
+        .n0 <- length(unique(.id))
+        .X <- .X[rep(1:.n0, rank(.Y)),]
+        .id <- .id[rep(1:.n0, rank(.Y))]
+        .ind <- unlist(sapply(1:.n0, function(x) 1:x)[rank(.Y)])
+        .Dtmp <- .D
+        .D <- rep(0, sum(1:.n0))
+        .D[cumsum((1:.n0)[rank(.Y)])] <- .Dtmp
+        .Y <- as.numeric(sort(.Y)[.ind])
+        ## ord <- order(.Y)
+    } 
+    tmp <- aggregate(.Y ~ .id, FUN = max)
+    ord <- unlist(sapply(tmp$.id[order(tmp$.Y)], function(x) which(.id == x)), use.names = F)
+    .id2 <- rep(1:length(unique(.id)), table(.id)[unique(.id[ord])])
     ## .Y, .id, .X, .D are original data
     ## .Y2, .id2, .X2, .D2 are ordered data
     ## data.frame(.Y = .Y[ord], .D = .D[ord], .id = .id[ord], .id2 = .id2, .X[ord,])
@@ -103,10 +113,14 @@ rocTree <- function(formula, data, id, subset, ensemble = TRUE, splitBy = c("dCO
     disc <- rep(control$disc, .p)
     cutoff <- (1:control$nc) / (control$nc + 1)
     .tk <- quantile(unique(.Y0[.D0 > 0]), 1:control$K / (control$K + 1), names = FALSE)
+    .eps <- unlist(sapply(split(.id2, .id2), function(.x) 1:length(.x)))
     .X[order(.Y), disc == 0] <- apply(.X[, disc == 0, drop = FALSE], 2, function(.x)
-        unlist(lapply(split(.x, sequence(1:length(unique(.Y)))), fecdf)))
+        unlist(lapply(split(.x, .eps), fecdf)))
+    ## unlist(lapply(split(.x, sequence(1:length(unique(.Y)))), fecdf)))
     .X[,disc == 0] <- apply(.X[,disc == 0, drop = FALSE], 2, function(x)
         findInterval(x, cutoff)) + 1
+    ## Remove transformation
+    ## .X <- .X[,rep(1, ncol(.X))]
     .hk <- rep(control$h, control$K)
     .hk[.tk < control$h] <- .tk[.tk < control$h]
     .mat1f <- t(.D0 * mapply(function(x,h) K2(x, .Y0, h) / h, .tk, .hk))
@@ -160,7 +174,7 @@ rocTree.control <- function(l) {
     l.name <- names(l)    
     if (!all(l.name %in% names(dl)))
         warning("unknown names in control are ignored: ", l.name[!(l.name %in% names(dl))])
-    dl[names(dl) %in% l.name] <- l[l.name %in% names(dl)]
+    dl[match(l.name, names(dl))] <- l
     ## if (is.null(dl$hN)) dl$hN <- dl$tau / 20
     return(dl)
 }

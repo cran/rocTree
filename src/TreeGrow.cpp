@@ -62,6 +62,8 @@ std::shared_ptr<Tree> TreeGrow::trainCV(const arma::umat& mat1Z,
     Tree::findBeta(iconAll, beta, sizeTree); 
     arma::vec iconBeta = prune(beta, mat1Z, mat1f, mat2Zf, range0, e);
     uint qo = iconBeta.index_max();
+    // Rcpp::Rcout << "iconBeta" << iconBeta << std::endl;
+    // Rcpp::Rcout << "qo" << qo << std::endl;
     arma::uvec nodeSetFinal = nodeSetList(sizeTree(qo)-1);
     tr->cut(nodeSetFinal);
   }
@@ -579,11 +581,8 @@ arma::ivec TreeGrow::find_split_DICON(size_t nd,
           }
         }
       }
-
-     // if( (SLSum.min() < MIN_NODE1 || SRSum.min() < MIN_NODE1) && ( nel < MIN_NODE2 || nelr - nel < MIN_NODE2) )
       if( (SLSum(0) < MIN_NODE1 || SRSum(0) < MIN_NODE1) ) {
         dICONTemp = 0;
-        //Rcpp::Rcout << "small 1" << SLSum.min() << "a"<<SRSum.min() << "a"<<j <<"a"<< indY.size()-j << "\n";
       } else {
         dICONTemp = arma::sum(abs(fLSum%SRSum - fRSum%SLSum) );
       }
@@ -630,7 +629,7 @@ arma::ivec TreeGrow::find_split_ICON(size_t nd,
   double dICONmax = 0;
   double dICONTemp = 0;
   arma::mat fmatTerm = fmat.cols(arma::find(isLeaf == 1));
-  arma::umat SmatTerm = Smat.cols(arma::find(isLeaf == 1));
+  arma::umat SmatTerm = Smat.cols(arma::find(isLeaf == 1));     
   for(int p = 0; p < P; p++) {
     arma::uvec indY = nodeSampleY(nd)( sort_index( mat1Z(p*n + nodeSampleY(nd)) ));
     arma::field<arma::uvec> indp(K);

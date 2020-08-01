@@ -4,11 +4,20 @@
 \alias{plot.rocTree}
 \title{Plotting an \code{rocTree} object}
 \usage{
-\method{plot}{rocTree}(x, output = c("graph", "visNetwork"),
-  digits = 4, tree = 1L, rankdir = c("TB", "BT", "LR", "RL"),
-  shape = "ellipse", nodeOnly = FALSE, savePlot = FALSE,
-  file_name = "pic.pdf", file_type = "pdf", type = c("tree",
-  "survival", "hazard"), ...)
+\method{plot}{rocTree}(
+  x,
+  output = c("graph", "visNetwork"),
+  digits = 4,
+  tree = 1L,
+  rankdir = c("TB", "BT", "LR", "RL"),
+  shape = "ellipse",
+  nodeOnly = FALSE,
+  savePlot = FALSE,
+  file_name = "pic.pdf",
+  file_type = "pdf",
+  type = c("tree", "survival", "hazard"),
+  ...
+)
 }
 \arguments{
 \item{x}{an object of class "\code{rocTree}", usually returned by the rocTree function.}
@@ -43,22 +52,16 @@ The \code{dgr_graph} options are available only when \code{type = tree}.}
 Plots an \code{rocTree} object. The function returns a \code{dgr_graph} object that is rendered in the RStudio Viewer or survival/hazard estimate at terminal nodes.
 }
 \examples{
-library(rocTree)
-library(survival)
-
-set.seed(1)
-dat <- simu(100, 0, 1.3)
-
-fit <- rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = dat, ensemble = FALSE)
-
+\dontrun{
+data(simDat)
+fit <- rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = simDat, ensemble = FALSE)
 ## Plot tree
 plot(fit)
-
 ## Plot survival estimates at terminal nodes
 plot(fit, type = "survival")
-
 ## Plot hazard estimates at terminal nodes
 plot(fit, type = "haz")
+}
 }
 \seealso{
 See \code{\link{rocTree}} for creating \code{rocTree} objects.

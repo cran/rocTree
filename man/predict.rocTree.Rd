@@ -4,8 +4,7 @@
 \alias{predict.rocTree}
 \title{Predicting based on a \code{rocTree} model.}
 \usage{
-\method{predict}{rocTree}(object, newdata, type = c("survival",
-  "hazard"), control = list(), ...)
+\method{predict}{rocTree}(object, newdata, type = c("survival", "hazard"), control = list(), ...)
 }
 \arguments{
 \item{object}{is an \code{rocTree} object.}
@@ -28,19 +27,14 @@ Returns a \code{data.frame} of the predicted survival probabilities or cumulativ
 The function gives predicted values with a \code{rocTree} fit.
 }
 \examples{
-library(rocTree)
-library(survival)
-
-set.seed(1)
-dat <- simu(100, 0, 1.3)
-
-fit <- rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = dat, ensemble = FALSE)
+data(simDat)
+fit <- rocTree(Surv(Time, death) ~ z1 + z2, id = id, data = simDat, ensemble = FALSE)
 
 ## testing data
-newdat <- dplyr::tibble(Time = sort(unique(dat$Time)), 
-                        z1 = 1 * (Time < median(Time)), 
-                        z2 = runif(1))
-newdat
+newdat <- data.frame(Time = sort(unique(simDat$Time)), 
+                     z2 = runif(1))
+newdat$z1 <- 1 * (newdat$Time < median(newdat$Time))
+head(newdat)
 
 ## Predict survival 
 pred <- predict(fit, newdat)
